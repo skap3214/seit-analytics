@@ -1,7 +1,4 @@
 langchain_openai
-langchain
-unstructured
-unstructured[pdf]
+langchain   
 streamlit
 watchdog
-opencv-python-headless

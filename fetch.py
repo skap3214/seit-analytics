@@ -1,7 +1,7 @@
 import requests
 import csv
 from datetime import datetime, timedelta
-from langchain_community.document_loaders import UnstructuredURLLoader
+from langchain_community.document_loaders import ToMarkdownLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains.summarize import load_summarize_chain
 from langchain.chains import LLMChain
@@ -11,6 +11,7 @@ from langchain.schema.document import Document
 from langchain.prompts import PromptTemplate
 import tiktoken
 import hashlib
+import os
 
 spliter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
@@ -103,11 +104,11 @@ def extract_from_links(links_dict):
     for key, value in links_dict.items():
         data = []
         for link in value:
-            loader = UnstructuredURLLoader([link])
+            loader = ToMarkdownLoader(link, api_key=os.getenv("MARKDOWN_API_KEY"))
             try:
                 docs = loader.load()
-            except:
-                print("error loading url")
+            except Exception as e:
+                print(f"error loading url {str(e)}")
                 continue
             if docs:
                 docs[0].metadata['link'] = link
