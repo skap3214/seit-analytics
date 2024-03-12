@@ -104,7 +104,11 @@ def extract_from_links(links_dict):
         data = []
         for link in value:
             loader = UnstructuredURLLoader([link])
-            docs = loader.load()
+            try:
+                docs = loader.load()
+            except:
+                print("error loading url")
+                continue
             if docs:
                 docs[0].metadata['link'] = link
                 data.append(docs[0])
