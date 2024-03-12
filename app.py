@@ -41,5 +41,3 @@ if generate := st.button('Generate Summary'):
     with st.expander('Blockchain', expanded=True) as blockchain:
         st.subheader('Blockchain')
         topic_summary_generate('blockchain')
-    
-    blockchain.expanded = False
