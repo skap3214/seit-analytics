@@ -4,3 +4,4 @@ unstructured
 unstructured[pdf]
 streamlit
 watchdog
+cv2
