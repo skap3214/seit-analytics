@@ -52,6 +52,7 @@ Format your summary in markdown and make sure to include the [one alphanumeric s
 Place these citations at the end of the sentence or paragraph that reference them - do NOT put them all at the end. \
 Do NOT include multiple sources within one pair of brackets. There should only be one source per pair of brackets. \
 Your markdown formatted response should be easy to read, concise and information dense. \
+Remember: Format your summary in markdown and make sure to include the [one alphanumeric source] notation whenever you use information from the article summaries provided to you. \
 Article/Summary:"""
 reduce_prompt = PromptTemplate.from_template(reduce_template)
 reduce_chain = LLMChain(llm=llm, prompt=reduce_prompt, verbose=True)
@@ -141,9 +142,12 @@ def final_summary(summaries: list[str], link_source_maps: list[dict[str, str]]):
         key: value for link_source_map in link_source_maps for key, value in link_source_map.items()
     }
     count = 1
+    print(f"Summaries: {summaries}")
+    print(f"Link Source Maps: {link_source_maps}")
+    print(f"Summary: {summary}")
     for key, value in link_source_maps.items():
         print("Replacing:", key)
-        summary = summary.replace(f"[{key}]", f"[[{count}]]({value})")
+        summary = summary.replace(f"{key}", f"[[{count}]]({value})")
         count += 1
     return summary
 
