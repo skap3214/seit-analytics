@@ -32,26 +32,27 @@ stuff_link_summarize = load_summarize_chain(llm, chain_type='stuff', verbose=Tru
 map_reduce_link_summarize = load_summarize_chain(llm, chain_type='map_reduce', verbose=True)
 stuff_topic_summarize = load_summarize_chain(llm, chain_type='stuff', verbose=True)
 
-map_template = """You are a journalist who is an expert at summarizing technical articles. \
-Here are a list of article summaries: \
+map_template = """The following is a set of documents
 {docs}
-Write a summary which captures all the summaries.
-Cite your sources using [one alphanumeric source] notation which maps to the source of the article summaries provided to you. \
-Be fairly in depth when needed, but also to the point. \
-Format your summary in markdown and make sure to include the [one alphanumeric source] notation whenever you use information from the article summaries provided to you.
+Based on this list of docs, Identify the main themes and concisely summarize the documents in an article like tone and format. \
+Format your summary in markdown and make sure to include the [one alphanumeric source] notation whenever you use information from the article summaries provided to you. \
 Place these citations at the end of the sentence or paragraph that reference them - do NOT put them all at the end. \
 Do NOT include multiple sources within one pair of brackets. There should only be one source per pair of brackets. \
 Summary:"""
 map_prompt = PromptTemplate.from_template(map_template)
 map_chain = LLMChain(llm=llm, prompt=map_prompt, verbose=True)
 
-reduce_template = """The following is set of summaries:
+reduce_template = """You are a journalist who is an expert at summarizing technical articles. \
+Here are a list of article summaries: \
 {docs}
-Take these and distill it into a final, consolidated summary of the main themes. \
-Cite your sources using [one alphanumeric source] notation which maps to the source of the article summaries provided to you
+Write a summary of the article summaries in an article like tone and format. \
+Cite your sources using [one alphanumeric source] notation which maps to the source of the article summaries provided to you. \
 Be fairly in depth when needed, but also to the point. \
 Format your summary in markdown and make sure to include the [one alphanumeric source] notation whenever you use information from the article summaries provided to you.
-Summary:"""
+Place these citations at the end of the sentence or paragraph that reference them - do NOT put them all at the end. \
+Do NOT include multiple sources within one pair of brackets. There should only be one source per pair of brackets. \
+Your markdown formatted response should be easy to read, concise and information dense. \
+Article/Summary:"""
 reduce_prompt = PromptTemplate.from_template(reduce_template)
 reduce_chain = LLMChain(llm=llm, prompt=reduce_prompt, verbose=True)
 
@@ -124,15 +125,27 @@ def summarize_topic(docs: list[Document]):
         doc.page_content = doc.page_content + f"[{doc.metadata['source']}]"
     topic_summary_1 = map_reduce_topic_summarize.run(docs)
     topic_summary = topic_summary_1
-    for i, doc in enumerate(docs, 1):
-        topic_summary = topic_summary.replace(f"[{doc.metadata['source']}]", f"[source {i}]({doc.metadata['link']})")
-    return topic_summary, topic_summary_1
+    count = 1
+    link_source_map = dict()
+    for doc in docs:
+        if f"[{doc.metadata['source']}]" in topic_summary:
+            topic_summary = topic_summary.replace(f"[{doc.metadata['source']}]", f"[[{count}]]({doc.metadata['link']})")
+            link_source_map[f"[{doc.metadata['source']}]"] = doc.metadata['link']
+            count += 1
+    return topic_summary, topic_summary_1, link_source_map
 
-
-def final_summary(summaries: list[str]):
+def final_summary(summaries: list[str], link_source_maps: list[dict[str, str]]):
     docs = [Document(page_content=summary) for summary in summaries]
-    final_summary = map_reduce_topic_summarize.run(docs)
-    return final_summary
+    summary = map_reduce_topic_summarize.run(docs)
+    link_source_maps = {
+        key: value for link_source_map in link_source_maps for key, value in link_source_map.items()
+    }
+    count = 1
+    for key, value in link_source_maps.items():
+        print("Replacing:", key)
+        summary = summary.replace(f"[{key}]", f"[[{count}]]({value})")
+        count += 1
+    return summary
 
 
 def hash_string(string):
