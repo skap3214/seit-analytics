@@ -1,0 +1,6 @@
+langchain_openai
+langchain
+unstructured
+"unstructured[pdf]"
+streamlit
+watchdog
