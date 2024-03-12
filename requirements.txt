@@ -4,4 +4,4 @@ unstructured
 unstructured[pdf]
 streamlit
 watchdog
-opencv-python
+opencv-python-headless
