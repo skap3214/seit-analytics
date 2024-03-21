@@ -1,13 +1,6 @@
 import streamlit as st
 from fetch import fetch_links_from_past_hours, extract_from_links, summarize_link, summarize_topic, final_summary
 
-@st.cache_data(show_spinner=False)
-def extract():
-    return extract_from_links(fetch_links_from_past_hours())
-
-@st.cache_data(show_spinner=False)
-def summary(**kwargs):
-    return final_summary(**kwargs)
 
 st.title("Latest SEIT Posts Summary")
 
@@ -16,9 +9,8 @@ if generate := st.button('Generate Summary'):
     # security, ai, iot, blockchain = st.columns(4)
     with st.spinner(f'Fetching links'):
         links = fetch_links_from_past_hours()
-        docs_dict = extract()
+        docs_dict = extract_from_links(fetch_links_from_past_hours())
 
-    @st.cache_data(show_spinner=False)
     def topic_summary_generate(topic: str):
         with st.spinner(f'Analyzing articles'):
             topic_docs = docs_dict[topic]

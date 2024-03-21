@@ -17,10 +17,6 @@ spliter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
 )
 tokenizer = tiktoken.encoding_for_model("gpt-3.5-turbo")
-security = "https://seit.egr.msu.edu/data/security_title_url.csv"
-iot = "https://seit.egr.msu.edu/data/ai_title_url.csv"
-blockchain = "https://seit.egr.msu.edu/data/blockchain_title_url.csv"
-ai = "https://seit.egr.msu.edu/data/iot_title_url.csv"
 
 link_dict = {
     "security": "https://seit.egr.msu.edu/data/security_title_url.csv",
@@ -33,27 +29,44 @@ stuff_link_summarize = load_summarize_chain(llm, chain_type='stuff', verbose=Tru
 map_reduce_link_summarize = load_summarize_chain(llm, chain_type='map_reduce', verbose=True)
 stuff_topic_summarize = load_summarize_chain(llm, chain_type='stuff', verbose=True)
 
-map_template = """The following is a set of documents
+map_template = """The following is a set of articles
 {docs}
-Based on this list of docs, Identify the main themes and concisely summarize the documents in an article like tone and format. \
+Based on this list of docs, Identify the main themes and concisely summarize the articles in an article like tone and format. \
 Format your summary in markdown and make sure to include the [one alphanumeric source] notation whenever you use information from the article summaries provided to you. \
 Place these citations at the end of the sentence or paragraph that reference them - do NOT put them all at the end. \
 Do NOT include multiple sources within one pair of brackets. There should only be one source per pair of brackets. \
+Remember: Concise, article like summary with citations like these [source] that match with the citations given in the articles. \
 Summary:"""
 map_prompt = PromptTemplate.from_template(map_template)
 map_chain = LLMChain(llm=llm, prompt=map_prompt, verbose=True)
 
-reduce_template = """You are a journalist who is an expert at summarizing technical articles. \
+reduce_template = """You are a security analyst who has been tasked in summarizing articles that are relevant to MSU's Technology Department. \
+Here are the requirements and goals of the tech department:
+Based on the analysis of the 2023 MSU IT Annual Report, the following security requirements and focus areas for MSU can be identified:
+
+1. Identity and Access Management (IAM): MSU IT is investing in a multi-year IAM project to manage identities and entitlements of people with the services they use. This initiative aims to increase user experience and security for the MSU community by ensuring that the right people have access to the right resources at the right time.
+
+2. Regulated Research Enclave: MSU IT secured $6 million to establish a Regulated Research Enclave in partnership with the Office of Research & Innovation. The purpose of this enclave is to meet current and future regulatory compliance requirements for U.S. Department of Defense research grants and contracts. This initiative ensures the security and sustainability of MSU's research enterprise.
+
+3. Cybersecurity Investments: Looking ahead to 2024, MSU IT plans to make significant investments in cybersecurity, including the rollout of cybersecurity training for the university. This focus on cybersecurity education and awareness will help protect the university's digital assets and sensitive information.
+
+4. Generative AI Security: As MSU IT collaborates with campus partners to provide guidance on the use of generative AI in education, research, and operations, data security assessments are being conducted. This proactive approach ensures that the implementation of AI technologies aligns with the university's security requirements and best practices.
+
+5. Network Modernization: The ongoing multi-year investment in network infrastructure and improvements not only enhances user experience but also contributes to the overall security of MSU's digital environment. By upgrading and simplifying the network, MSU IT can better control and secure the flow of data across the university's systems.
+
+These initiatives demonstrate MSU's commitment to maintaining a secure and compliant digital environment while supporting the university's strategic goals in education, research, and outreach.
+
 Here are a list of article summaries: \
 {docs}
 Write a summary of the article summaries in an article like tone and format. \
 Cite your sources using [one alphanumeric source] notation which maps to the source of the article summaries provided to you. \
-Be fairly in depth when needed, but also to the point. \
 Format your summary in markdown and make sure to include the [one alphanumeric source] notation whenever you use information from the article summaries provided to you.
 Place these citations at the end of the sentence or paragraph that reference them - do NOT put them all at the end. \
 Do NOT include multiple sources within one pair of brackets. There should only be one source per pair of brackets. \
 Your markdown formatted response should be easy to read, concise and information dense. \
 Remember: Format your summary in markdown and make sure to include the [one alphanumeric source] notation whenever you use information from the article summaries provided to you. \
+Do not summarize the security requirements, use the requirements to tailor your summary to the needs of the tech department. \
+Your summary should not exceed 200 words. \
 Article/Summary:"""
 reduce_prompt = PromptTemplate.from_template(reduce_template)
 reduce_chain = LLMChain(llm=llm, prompt=reduce_prompt, verbose=True)
